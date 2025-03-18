@@ -7,6 +7,7 @@ import os
 import pickle
 from torchvision import models
 from tqdm import tqdm
+import torch.nn.functional as F
 
 # Load trained model
 model_path = "histology_models/best_model.pth"
@@ -80,9 +81,10 @@ for slide_idx, slide_name in enumerate(tqdm(test_slide_names, desc="Processing S
         
         with torch.no_grad():
             output = model(tile)
-            prediction = torch.argmax(output, dim=1).item()
+            probs = F.softmax(output, dim = 1)
+            tumour_prob = probs[0, 1].item()
         
-        tile_predictions.append((x, y, prediction))
+        tile_predictions.append((x, y, tumour_prob))
     
     # Save after processing each slide
     tile_predictions_dict[slide_name] = tile_predictions
